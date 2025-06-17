@@ -1,6 +1,8 @@
 # ui/interface.py
 import tkinter as tk
 import time
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import filedialog
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
@@ -66,7 +68,7 @@ class SignatureApp:
         tk.Button(frame, text="导入密钥", command=self.import_keys).grid(row=0, column=4, padx=5)
 
         tk.Button(frame, text="性能测试 (100 次)", command=self.performance_test).grid(row=0, column=5, padx=5)
-
+        tk.Button(frame, text="算法性能对比图", command=self.plot_performance_comparison).grid(row=0, column=6, padx=5)
 
         # 输出签名
         tk.Label(self.root, text="签名（base64）:").pack()
@@ -265,3 +267,80 @@ class SignatureApp:
 
         self.log("性能测试", f"{iterations} 次签名平均耗时: {avg_sign:.2f} ms")
         self.log("性能测试", f"{iterations} 次验证平均耗时: {avg_verify:.2f} ms")
+
+    def plot_performance_comparison(self):
+        import time
+        import matplotlib.pyplot as plt
+        from matplotlib.font_manager import FontProperties
+        import tkinter as tk
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+        from algorithms.rsa_signature import RSASignature
+        from algorithms.dsa_signature import DSASignature
+        from algorithms.ecdsa_signature import ECDSASignature
+
+        # 设置 matplotlib 中文字体（请确认该字体路径在你电脑上存在）
+        font_path = "C:/Windows/Fonts/msyh.ttc"  # 微软雅黑字体路径
+        chinese_font = FontProperties(fname=font_path)
+        plt.rcParams['font.family'] = chinese_font.get_name()
+        plt.rcParams['axes.unicode_minus'] = False  # 负号正常显示
+
+        # tkinter 字体（窗口标题用中文一般不必特别设置，如果控件文字中文，推荐加字体）
+        # 这里默认不特别设置，如果需要可以在控件里加 font 参数
+
+        algorithms = {
+            "RSA": RSASignature(),
+            "DSA": DSASignature(),
+            "ECDSA": ECDSASignature()
+        }
+
+        message = b"Performance test message"
+        iterations = 100
+
+        sign_times = []
+        verify_times = []
+        labels = []
+
+        for name, signer in algorithms.items():
+            priv, pub = signer.generate_keys()
+
+            # 签名耗时
+            s_times = []
+            for _ in range(iterations):
+                t0 = time.perf_counter()
+                sig = signer.sign(message, priv)
+                t1 = time.perf_counter()
+                s_times.append((t1 - t0) * 1000)
+
+            # 验证耗时
+            v_times = []
+            for _ in range(iterations):
+                t0 = time.perf_counter()
+                signer.verify(message, sig, pub)
+                t1 = time.perf_counter()
+                v_times.append((t1 - t0) * 1000)
+
+            sign_times.append(sum(s_times) / iterations)
+            verify_times.append(sum(v_times) / iterations)
+            labels.append(name)
+
+        # 绘图
+        fig, ax = plt.subplots(figsize=(6, 4))
+        x = range(len(labels))
+        width = 0.35
+
+        ax.bar([i - width / 2 for i in x], sign_times, width=width, label="签名")
+        ax.bar([i + width / 2 for i in x], verify_times, width=width, label="验证")
+        ax.set_ylabel("平均耗时 (ms)")
+        ax.set_title("算法性能对比（100 次平均）")
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, fontproperties=chinese_font)  # 这里显式用中文字体
+        ax.legend(prop=chinese_font)  # 图例也设置中文字体
+
+        # 嵌入 tkinter 窗口
+        win = tk.Toplevel(self.root)
+        win.title("算法性能对比图")
+        canvas = FigureCanvasTkAgg(fig, master=win)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
