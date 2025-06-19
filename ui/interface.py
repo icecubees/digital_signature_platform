@@ -210,6 +210,7 @@ class SignatureApp:
         except Exception as e:
             messagebox.showerror("导入失败", f"导入失败: {e}")
 
+# 日志
     def log(self, action: str, detail: str):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"[{now}] [{self.current_algorithm}] {action}: {detail}\n"
@@ -237,6 +238,7 @@ class SignatureApp:
         self.digest_display.insert(0, hex_digest)
         self.digest_display.config(state='readonly')
 
+# 性能测试
     def performance_test(self):
         if not self.private_key or not self.public_key:
             messagebox.showwarning("错误", "请先生成密钥对")
@@ -274,6 +276,7 @@ class SignatureApp:
         self.log("性能测试", f"{iterations} 次签名平均耗时: {avg_sign:.2f} ms")
         self.log("性能测试", f"{iterations} 次验证平均耗时: {avg_verify:.2f} ms")
 
+# 生成算法性能测试图
     def plot_performance_comparison(self):
         import time
         import matplotlib.pyplot as plt
@@ -350,6 +353,7 @@ class SignatureApp:
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+# 文件签名，验证
     def sign_file(self):
         filepath = filedialog.askopenfilename(title="选择要签名的文件")
         if not filepath:
