@@ -70,7 +70,7 @@ class SignatureApp:
         tk.Button(frame, text="导出密钥", command=self.export_keys).grid(row=0, column=3, padx=5)
         tk.Button(frame, text="导入密钥", command=self.import_keys).grid(row=0, column=4, padx=5)
 
-        tk.Button(frame, text="性能测试 (100 次)", command=self.performance_test).grid(row=0, column=5, padx=5)
+        tk.Button(frame, text="性能测试 (1000 次)", command=self.performance_test).grid(row=0, column=5, padx=5)
         tk.Button(frame, text="算法性能对比图", command=self.plot_performance_comparison).grid(row=0, column=6, padx=5)
 
         tk.Button(frame, text="签名文件", command=self.sign_file).grid(row=0, column=7, padx=5)
