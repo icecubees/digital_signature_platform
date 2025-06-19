@@ -1,6 +1,7 @@
 # ui/interface.py
 import tkinter as tk
 import time
+import os
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import filedialog
@@ -11,6 +12,8 @@ from algorithms.rsa_signature import RSASignature
 from algorithms.dsa_signature import DSASignature
 from algorithms.ecdsa_signature import ECDSASignature
 from datetime import datetime
+
+
 
 
 
@@ -69,6 +72,9 @@ class SignatureApp:
 
         tk.Button(frame, text="性能测试 (100 次)", command=self.performance_test).grid(row=0, column=5, padx=5)
         tk.Button(frame, text="算法性能对比图", command=self.plot_performance_comparison).grid(row=0, column=6, padx=5)
+
+        tk.Button(frame, text="签名文件", command=self.sign_file).grid(row=0, column=7, padx=5)
+        tk.Button(frame, text="验证文件签名", command=self.verify_file).grid(row=0, column=8, padx=5)
 
         # 输出签名
         tk.Label(self.root, text="签名（base64）:").pack()
@@ -344,3 +350,51 @@ class SignatureApp:
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+    def sign_file(self):
+        filepath = filedialog.askopenfilename(title="选择要签名的文件")
+        if not filepath:
+            return
+
+        if not self.private_key:
+            messagebox.showwarning("错误", "请先生成密钥")
+            return
+
+        with open(filepath, 'rb') as f:
+            content = f.read()
+
+        signature = self.signer.sign(content, self.private_key)
+        sig_path = filepath + ".sig"
+        with open(sig_path, 'wb') as f:
+            f.write(signature)
+
+        import hashlib
+        digest = hashlib.sha256(content).hexdigest()
+        self.log("文件签名", f"文件: {os.path.basename(filepath)}")
+        self.log("文件签名", f"SHA-256 摘要: {digest}")
+        self.log("文件签名", f"签名已保存: {os.path.basename(sig_path)}")
+
+    def verify_file(self):
+        file_path = filedialog.askopenfilename(title="选择要验证的文件")
+        if not file_path:
+            return
+
+        sig_path = filedialog.askopenfilename(title="选择对应的 .sig 签名文件")
+        if not sig_path:
+            return
+
+        if not self.public_key:
+            messagebox.showwarning("错误", "请先生成或导入公钥")
+            return
+
+        with open(file_path, 'rb') as f:
+            content = f.read()
+        with open(sig_path, 'rb') as f:
+            signature = f.read()
+
+        result = self.signer.verify(content, signature, self.public_key)
+
+        import hashlib
+        digest = hashlib.sha256(content).hexdigest()
+        self.log("验证签名", f"文件: {os.path.basename(file_path)}")
+        self.log("验证签名", f"SHA-256 摘要: {digest}")
+        self.log("验证签名", f"签名验证结果: {'通过' if result else '失败'}")
