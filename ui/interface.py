@@ -250,7 +250,8 @@ class SignatureApp:
             return
 
         msg_bytes = msg.encode('utf-8')
-        iterations = 100
+        # 测试次数
+        iterations = 1000
 
         import time
         # 签名测试
