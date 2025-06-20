@@ -342,7 +342,7 @@ class SignatureApp:
         ax.bar([i - width / 2 for i in x], sign_times, width=width, label="签名")
         ax.bar([i + width / 2 for i in x], verify_times, width=width, label="验证")
         ax.set_ylabel("平均耗时 (ms)")
-        ax.set_title("算法性能对比（100 次平均）")
+        ax.set_title("算法性能对比（1000 次平均）")
         ax.set_xticks(x)
         ax.set_xticklabels(labels, fontproperties=chinese_font)  # 这里显式用中文字体
         ax.legend(prop=chinese_font)  # 图例也设置中文字体
